@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linked List Visualization by Dr. Mohammed Tawfik</title>
+    <style>
+        :root {
+            --animation-speed: 1s;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            color: #61dafb;
+            text-align: center;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        input, button, select {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: #2d2d2d;
+            color: #f0f0f0;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3e8e41;
+        }
+        .linked-list-container {
+            overflow-x: auto;
+            margin: 20px 0;
+            background-color: #252525;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #444;
+            min-height: 300px;
+        }
+        .linked-list {
+            display: flex;
+            justify-content: flex-start;
+            margin: 30px 0;
+            padding: 20px 0;
+            min-height: 120px;
+        }
+        .node {
+            display: flex;
+            flex-direction: column;
+            margin-right: 10px;
+            position: relative;
+            transition: all 0.5s ease;
+        }
+        
+        .node.highlight {
+            box-shadow: 0 0 15px #ffff00;
+            z-index: 10;
+        }
+        
+        .node.deleting {
+            opacity: 0.5;
+            transform: scale(0.8) translateY(20px);
+            box-shadow: 0 0 15px #ff0000;
+        }
+        
+        .node.new-node {
+            animation: newNode var(--animation-speed) ease;
+        }
+        
+        @keyframes newNode {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .node-content {
+            display: flex;
+            position: relative;
+        }
+        
+        .data-box {
+            width: 80px;
+            height: 80px;
+            background-color: #2196F3;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            border: 3px solid #0d47a1;
+            border-radius: 5px 0 0 5px;
+            position: relative;
+        }
+        
+        .next-box {
+            width: 80px;
+            height: 80px;
+            background-color: #FF9800;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            border: 3px solid #e65100;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .null-box {
+            background-color: #F44336;
+            border-color: #b71c1c;
+        }
+        
+        .arrow {
+            position: absolute;
+            top: 40px;
+            right: -30px;
+            color: #FF9800;
+            font-size: 36px;
+            z-index: 2;
+            font-weight: bold;
+            text-shadow: 0 0 5px #e65100;
+            transition: all 0.5s ease;
+        }
+        
+        .arrow.deleting {
+            opacity: 0;
+            transform: scale(0);
+        }
+        
+        .arrow.redirecting {
+            animation: redirectArrow 1s ease;
+        }
+        
+        @keyframes redirectArrow {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
+        }
+        
+        .pointer-label {
+            position: absolute;
+            top: -30px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            z-index: 20;
+        }
+        
+        .current-pointer {
+            color: #ffffff;
+            background-color: #2196F3;
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.7);
+        }
+        
+        .previous-pointer {
+            color: #ffffff;
+            background-color: #8BC34A;
+            box-shadow: 0 0 10px rgba(139, 195, 74, 0.7);
+            top: -65px;  /* Position above current pointer */
+        }
+        
+        .new-node-pointer {
+            color: #ffffff;
+            background-color: #FF9800;
+            box-shadow: 0 0 10px rgba(255, 152, 0, 0.7);
+        }
+        
+        .head-label {
+            position: absolute;
+            background-color: #E91E63;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            top: -30px;
+            left: 0;
+            box-shadow: 0 0 5px rgba(233, 30, 99, 0.5);
+        }
+        
+        .code-container {
+            background-color: #2d2d2d;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            overflow-x: auto;
+            border: 1px solid #444;
+        }
+        
+        .code {
+            font-family: 'Courier New', Courier, monospace;
+            color: #f0f0f0;
+            line-height: 1.5;
+            counter-reset: line;
+        }
+        
+        .code-line {
+            display: block;
+            position: relative;
+            padding-left: 40px;
+        }
+        
+        .code-line:before {
+            content: counter(line);
+            counter-increment: line;
+            position: absolute;
+            left: 0;
+            width: 30px;
+            color: #888;
+            text-align: right;
+        }
+        
+        .highlight {
+            background-color: rgba(255, 215, 0, 0.2);
+            color: #ffffff;
+        }
+        
+        .keyword {
+            color: #C678DD;
+        }
+        
+        .type {
+            color: #E5C07B;
+        }
+        
+        .function {
+            color: #61AFEF;
+        }
+        
+        .string {
+            color: #98C379;
+        }
+        
+        .comment {
+            color: #7F848E;
+            font-style: italic;
+        }
+        
+        .variable {
+            color: #E06C75;
+        }
+        
+        .operator {
+            color: #56B6C2;
+        }
+        
+        .step-explanation {
+            padding: 15px;
+            background-color: #333;
+            border-radius: 5px;
+            margin-top: 20px;
+            border-left: 4px solid #FF9800;
+            font-size: 16px;
+            line-height: 1.6;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .operation-visual {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #333;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            color: #FF9800;
+            border-left: 4px solid #E91E63;
+            font-size: 16px;
+        }
+        
+        /* Animation for linking nodes */
+        .linking-animation {
+            position: absolute;
+            height: 4px;
+            background-color: #4CAF50;
+            z-index: 5;
+            animation: linking var(--animation-speed) ease;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.7);
+        }
+        
+        @keyframes linking {
+            0% { width: 0; opacity: 0; }
+            100% { width: 100%; opacity: 1; }
+        }
+        
+        /* Animation for cutting nodes */
+        .cutting-animation {
+            position: absolute;
+            height: 4px;
+            background-color: #F44336;
+            z-index: 5;
+            animation: cutting var(--animation-speed) ease;
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.7);
+        }
+        
+        @keyframes cutting {
+            0% { width: 100%; opacity: 1; }
+            100% { width: 0; opacity: 0; }
+        }
+        
+        .simulation-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 15px 0;
+            gap: 15px;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #444;
+        }
+        
+        .speed-control {
+            display: flex;
+            align-items: center;
+        }
+        
+        .speed-control label {
+            margin-right: 10px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .speed-control input {
+            width: 150px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .tab {
+            padding: 12px 25px;
+            background-color: #2d2d2d;
+            color: #f0f0f0;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            font-weight: bold;
+            border: 1px solid #444;
+            border-bottom: none;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            border: 1px solid #444;
+            border-radius: 0 5px 5px 5px;
+            padding: 15px;
+            background-color: #2d2d2d;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Step control buttons */
+        .step-controls {
+            display: none;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #333;
+            border-radius: 5px;
+            border: 1px solid #555;
+        }
+        
+        .step-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 120px;
+        }
+        
+        .step-btn.prev {
+            background-color: #FF9800;
+            color: white;
+        }
+        
+        .step-btn.next {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .step-btn.stop {
+            background-color: #F44336;
+            color: white;
+        }
+        
+        .step-counter {
+            padding: 10px 15px;
+            background-color: #555;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Linked List Visualization</h1>
+        <p style="text-align: center; color: #ccc; margin-top: -10px;">By Dr. Mohammed Tawfik</p>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="insert">Insert Node</div>
+            <div class="tab" data-tab="delete">Delete Node</div>
+            <div class="tab" data-tab="display">Display List</div>
+        </div>
+        
+        <!-- Visualization container - moved to top -->
+        <div class="linked-list-container">
+            <div id="linked-list" class="linked-list"></div>
+            <div id="step-explanation" class="step-explanation" style="display: none;"></div>
+        </div>
+        
+        <!-- Step controls -->
+        <div id="step-controls" class="step-controls">
+            <button id="prev-step" class="step-btn prev">Previous</button>
+            <span id="step-counter" class="step-counter">Step 1 of 5</span>
+            <button id="next-step" class="step-btn next">Next Step</button>
+            <button id="stop-step" class="step-btn stop">Stop</button>
+        </div>
+        
+        <!-- Animation speed controls -->
+        <div class="simulation-controls">
+            <div class="speed-control">
+                <label for="animation-speed">Animation Speed:</label>
+                <input type="range" id="animation-speed" min="0.5" max="3" step="0.1" value="1">
+                <span id="speed-value">1x</span>
+            </div>
+            <button id="restart-animation">Restart Animation</button>
+            <button id="pause-animation">Pause</button>
+        </div>
+        
+        <div id="insert-tab" class="tab-content active">
+            <div class="controls">
+                <input type="number" id="insert-value" placeholder="Enter value">
+                <select id="insert-position">
+                    <option value="beginning">At Beginning</option>
+                    <option value="end" selected>At End</option>
+                    <option value="after">After Value</option>
+                </select>
+                <input type="number" id="after-value" placeholder="After value" style="display: none;">
+                <button id="insert-btn">Insert Node</button>
+                <button id="insert-step-btn">Start Step-by-Step</button>
+            </div>
+            
+            <div id="insert-explanation" class="explanation">
+                <h3>Insertion Operation</h3>
+                <p>Click "Insert Node" to immediately add a node, or "Start Step-by-Step" to see the detailed process.</p>
+            </div>
+            
+            <div class="code-container">
+                <pre class="code" id="insert-code">
+<span class="code-line"><span class="keyword">void</span> <span class="function">insertNode</span>(<span class="type">int</span> value) {</span>
+<span class="code-line">    <span class="type">node</span>* new_node, *last;</span>
+<span class="code-line">    new_node = <span class="keyword">new</span> <span class="type">node</span>;</span>
+<span class="code-line">    new_node->data = value;</span>
+<span class="code-line">    new_node->next = <span class="keyword">NULL</span>;</span>
+<span class="code-line">    </span>
+<span class="code-line">    <span class="keyword">if</span> (head == <span class="keyword">NULL</span>) {</span>
+<span class="code-line">        head = new_node;</span>
+<span class="code-line">    } <span class="keyword">else</span> {</span>
+<span class="code-line">        last = head;</span>
+<span class="code-line">        <span class="keyword">while</span> (last->next != <span class="keyword">NULL</span>) {</span>
+<span class="code-line">            last = last->next;</span>
+<span class="code-line">        }</span>
+<span class="code-line">        last->next = new_node;</span>
+<span class="code-line">    }</span>
+<span class="code-line">}</span>
+                </pre>
+            </div>
+        </div>
+        
+        <div id="delete-tab" class="tab-content">
+            <div class="controls">
+                <input type="number" id="delete-value" placeholder="Enter value to delete">
+                <button id="delete-btn">Delete Node</button>
+                <button id="delete-step-btn">Start Step-by-Step</button>
+            </div>
+            
+            <div id="delete-explanation" class="explanation">
+                <h3>Deletion Operation</h3>
+                <p>Click "Delete Node" to immediately delete a node, or "Start Step-by-Step" to see the detailed process.</p>
+            </div>
+            
+            <div class="code-container">
+                <pre class="code" id="delete-code">
+<span class="code-line"><span class="keyword">void</span> <span class="function">deleteNode</span>(<span class="type">int</span> value) {</span>
+<span class="code-line">    <span class="type">node</span>* current, * previous;</span>
+<span class="code-line">    </span>
+<span class="code-line">    current = head;</span>
+<span class="code-line">    previous = head;</span>
+<span class="code-line">    </span>
+<span class="code-line">    <span class="keyword">if</span> (current->data == value) {</span>
+<span class="code-line">        head = current->next;</span>
+<span class="code-line">        free(current);</span>
+<span class="code-line">        <span class="keyword">return</span>;</span>
+<span class="code-line">    }</span>
+<span class="code-line">    </span>
+<span class="code-line">    <span class="keyword">while</span> (current->data != value) {</span>
+<span class="code-line">        previous = current;</span>
+<span class="code-line">        current = current->next;</span>
+<span class="code-line">    }</span>
+<span class="code-line">    </span>
+<span class="code-line">    previous->next = current->next;</span>
+<span class="code-line">    free(current);</span>
+<span class="code-line">}</span>
+                </pre>
+            </div>
+        </div>
+        
+        <div id="display-tab" class="tab-content">
+            <div class="controls">
+                <button id="display-btn">Display List</button>
+                <button id="reset-btn">Reset List</button>
+            </div>
+            
+            <div class="code-container">
+                <pre class="code">
+<span class="code-line"><span class="keyword">void</span> <span class="function">displayList</span>() {</span>
+<span class="code-line">    <span class="type">node</span>* current = head;</span>
+<span class="code-line">    </span>
+<span class="code-line">    <span class="keyword">if</span> (current == <span class="keyword">NULL</span>) {</span>
+<span class="code-line">        cout << <span class="string">"The list is empty.\n"</span>;</span>
+<span class="code-line">        <span class="keyword">return</span>;</span>
+<span class="code-line">    }</span>
+<span class="code-line">    </span>
+<span class="code-line">    cout << <span class="string">"Linked List: "</span>;</span>
+<span class="code-line">    <span class="keyword">while</span> (current != <span class="keyword">NULL</span>) {</span>
+<span class="code-line">        cout << current->data << <span class="string">" -> "</span>;</span>
+<span class="code-line">        current = current->next;</span>
+<span class="code-line">    }</span>
+<span class="code-line">    cout << <span class="string">"NULL\n"</span>;</span>
+<span class="code-line">}</span>
+                </pre>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Add title to document
+        document.title = "Linked List Visualization by Dr. Mohammed Tawfik";
+        
+        // Node class
+        class Node {
+            constructor(data) {
+                this.data = data;
+                this.next = null;
+            }
+        }
+        
+        // LinkedList class
+        class LinkedList {
+            constructor() {
+                this.head = null;
+            }
+            
+            // Insert at beginning
+            insertAtBeginning(data) {
+                const newNode = new Node(data);
+                newNode.next = this.head;
+                this.head = newNode;
+            }
+            
+            // Insert at end
+            insertAtEnd(data) {
+                const newNode = new Node(data);
+                
+                if (!this.head) {
+                    this.head = newNode;
+                    return;
+                }
+                
+                let last = this.head;
+                while (last.next) {
+                    last = last.next;
+                }
+                
+                last.next = newNode;
+            }
+            
+            // Insert after a specific value
+            insertAfterValue(afterValue, data) {
+                const newNode = new Node(data);
+                
+                if (!this.head) {
+                    this.head = newNode;
+                    return;
+                }
+                
+                let current = this.head;
+                while (current && current.data !== afterValue) {
+                    current = current.next;
+                }
+                
+                if (!current) {
+                    // Value not found, insert at end
+                    this.insertAtEnd(data);
+                    return;
+                }
+                
+                newNode.next = current.next;
+                current.next = newNode;
+            }
+            
+            // Delete a node with specific value
+            deleteNode(value) {
+                if (!this.head) return;
+                
+                // If head node has the value
+                if (this.head.data === value) {
+                    this.head = this.head.next;
+                    return;
+                }
+                
+                let current = this.head;
+                let previous = null;
+                
+                while (current && current.data !== value) {
+                    previous = current;
+                    current = current.next;
+                }
+                
+                // If value not found
+                if (!current) return;
+                
+                // Remove the node
+                previous.next = current.next;
+            }
+            
+            // Clear the list
+            clear() {
+                this.head = null;
+            }
+        }
+        
+        // Animation speed
+        let animationSpeed = 1;
+        let animationPaused = false;
+        
+        // DOM Elements
+        const linkedListContainer = document.getElementById('linked-list');
+        const insertValueInput = document.getElementById('insert-value');
+        const insertPositionSelect = document.getElementById('insert-position');
+        const afterValueInput = document.getElementById('after-value');
+        const insertBtn = document.getElementById('insert-btn');
+        const insertStepBtn = document.getElementById('insert-step-btn');
+        const deleteValueInput = document.getElementById('delete-value');
+        const deleteBtn = document.getElementById('delete-btn');
+        const deleteStepBtn = document.getElementById('delete-step-btn');
+        const displayBtn = document.getElementById('display-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const insertExplanation = document.getElementById('insert-explanation');
+        const deleteExplanation = document.getElementById('delete-explanation');
+        const stepExplanation = document.getElementById('step-explanation');
+        const insertCode = document.getElementById('insert-code');
+        const deleteCode = document.getElementById('delete-code');
+        const speedControl = document.getElementById('animation-speed');
+        const speedValue = document.getElementById('speed-value');
+        const restartAnimationBtn = document.getElementById('restart-animation');
+        const pauseAnimationBtn = document.getElementById('pause-animation');
+        const stepControls = document.getElementById('step-controls');
+        const prevStepBtn = document.getElementById('prev-step');
+        const nextStepBtn = document.getElementById('next-step');
+        const stopStepBtn = document.getElementById('stop-step');
+        const stepCounter = document.getElementById('step-counter');
+        
+        // Helper variables
+        const linkedList = new LinkedList();
+        let insertSteps = [];
+        let deleteSteps = [];
+        let currentStep = 0;
+        let inStepMode = false;
+        let isInsertMode = false;
+        let isDeletionMode = false;
+        
+        // Speed control
+        speedControl.addEventListener('input', function() {
+            animationSpeed = parseFloat(this.value);
+            speedValue.textContent = animationSpeed.toFixed(1) + 'x';
+            
+            // Update animation speed for CSS animations
+            document.documentElement.style.setProperty('--animation-speed', 1 / animationSpeed + 's');
+        });
+        
+        // Restart animation
+        restartAnimationBtn.addEventListener('click', function() {
+            if (inStepMode) {
+                currentStep = 0;
+                executeStep();
+            }
+        });
+        
+        // Pause animation
+        pauseAnimationBtn.addEventListener('click', function() {
+            animationPaused = !animationPaused;
+            this.textContent = animationPaused ? 'Resume' : 'Pause';
+            
+            if (!animationPaused && inStepMode) {
+                executeStep();
+            }
+        });
+        
+        // Event listeners
+        insertPositionSelect.addEventListener('change', function() {
+            if (this.value === 'after') {
+                afterValueInput.style.display = 'inline-block';
+            } else {
+                afterValueInput.style.display = 'none';
+            }
+        });
+        
+        insertBtn.addEventListener('click', function() {
+            const value = parseInt(insertValueInput.value);
+            if (isNaN(value)) {
+                alert('Please enter a valid number');
+                return;
+            }
+            
+            const position = insertPositionSelect.value;
+            if (position === 'beginning') {
+                linkedList.insertAtBeginning(value);
+            } else if (position === 'end') {
+                linkedList.insertAtEnd(value);
+            } else if (position === 'after') {
+                const afterValue = parseInt(afterValueInput.value);
+                if (isNaN(afterValue)) {
+                    alert('Please enter a valid "after value"');
+                    return;
+                }
+                linkedList.insertAfterValue(afterValue, value);
+            }
+            
+            renderLinkedList();
+            insertValueInput.value = '';
+            afterValueInput.value = '';
+        });
+        
+        deleteBtn.addEventListener('click', function() {
+            const value = parseInt(deleteValueInput.value);
+            if (isNaN(value)) {
+                alert('Please enter a valid number');
+                return;
+            }
+            
+            linkedList.deleteNode(value);
+            renderLinkedList();
+            deleteValueInput.value = '';
+        });
+        
+        displayBtn.addEventListener('click', renderLinkedList);
+        
+        resetBtn.addEventListener('click', function() {
+            linkedList.clear();
+            renderLinkedList();
+        });
+        
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // Stop any ongoing simulation when switching tabs
+                stopStepMode();
+                
+                // Deactivate all tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Activate the clicked tab
+                this.classList.add('active');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        // Step-by-step visualization for insert
+        insertStepBtn.addEventListener('click', function() {
+            const value = parseInt(insertValueInput.value);
+            if (isNaN(value)) {
+                alert('Please enter a valid number');
+                return;
+            }
+            
+            const position = insertPositionSelect.value;
+            
+            // Reset and show the step UI
+            stepExplanation.style.display = 'block';
+            stepControls.style.display = 'flex';
+            
+            inStepMode = true;
+            isInsertMode = true;
+            isDeletionMode = false;
+            currentStep = 0;
+            
+            if (position === 'beginning') {
+                prepareInsertAtBeginningSteps(value);
+            } else if (position === 'end') {
+                prepareInsertAtEndSteps(value);
+            } else if (position === 'after') {
+                const afterValue = parseInt(afterValueInput.value);
+                if (isNaN(afterValue)) {
+                    alert('Please enter a valid "after value"');
+                    return;
+                }
+                prepareInsertAfterValueSteps(afterValue, value);
+            }
+            
+            updateStepCounter();
+            executeStep();
+        });
+        
+        // Step-by-step visualization for delete
+        deleteStepBtn.addEventListener('click', function() {
+            const value = parseInt(deleteValueInput.value);
+            if (isNaN(value)) {
+                alert('Please enter a valid number');
+                return;
+            }
+            
+            // Check if the value exists in the list
+            let valueExists = false;
+            let current = linkedList.head;
+            
+            while (current) {
+                if (current.data === value) {
+                    valueExists = true;
+                    break;
+                }
+                current = current.next;
+            }
+            
+            if (!valueExists && linkedList.head) {
+                alert(`Value ${value} not found in the list.`);
+                return;
+            }
+            
+            prepareDeleteNodeSteps(value);
+            
+            // Reset and show the step UI
+            stepExplanation.style.display = 'block';
+            stepControls.style.display = 'flex';
+            
+            inStepMode = true;
+            isInsertMode = false;
+            isDeletionMode = true;
+            currentStep = 0;
+            
+            updateStepCounter();
+            executeStep();
+        });
+        
+        // Step control buttons
+        prevStepBtn.addEventListener('click', function() {
+            if (currentStep > 0) {
+                currentStep--;
+                updateStepCounter();
+                executeStep();
+            }
+        });
+        
+        nextStepBtn.addEventListener('click', function() {
+            let steps = isInsertMode ? insertSteps : deleteSteps;
+            
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                updateStepCounter();
+                executeStep();
+            } else {
+                // Final step - complete the operation
+                if (isInsertMode) {
+                    const value = parseInt(insertValueInput.value);
+                    const position = insertPositionSelect.value;
+                    
+                    if (position === 'beginning') {
+                        linkedList.insertAtBeginning(value);
+                    } else if (position === 'end') {
+                        linkedList.insertAtEnd(value);
+                    } else if (position === 'after') {
+                        const afterValue = parseInt(afterValueInput.value);
+                        linkedList.insertAfterValue(afterValue, value);
+                    }
+                } else if (isDeletionMode) {
+                    const value = parseInt(deleteValueInput.value);
+                    linkedList.deleteNode(value);
+                }
+                
+                renderLinkedList();
+                stopStepMode();
+            }
+        });
+        
+        stopStepBtn.addEventListener('click', stopStepMode);
+        
+        // Update step counter display
+        function updateStepCounter() {
+            const steps = isInsertMode ? insertSteps : deleteSteps;
+            stepCounter.textContent = `Step ${currentStep + 1} of ${steps.length}`;
+        }
+        
+        // Stop step mode
+        function stopStepMode() {
+            inStepMode = false;
+            isInsertMode = false;
+            isDeletionMode = false;
+            stepExplanation.style.display = 'none';
+            stepControls.style.display = 'none';
+            insertValueInput.value = '';
+            afterValueInput.value = '';
+            deleteValueInput.value = '';
+        }
+        
+        // Execute current step
+        function executeStep() {
+            if (animationPaused) return;
+            
+            let steps, codeElement;
+            
+            if (isInsertMode) {
+                steps = insertSteps;
+                codeElement = insertCode;
+            } else {
+                steps = deleteSteps;
+                codeElement = deleteCode;
+            }
+            
+            if (currentStep >= steps.length) return;
+            
+            // Clear all highlights from both code elements
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('highlight');
+            });
+            
+            // Add new highlights
+            const step = steps[currentStep];
+            step.highlightLines.forEach(lineNum => {
+                if (codeElement) {
+                    const codeLine = codeElement.querySelectorAll('.code-line')[lineNum - 1];
+                    if (codeLine) codeLine.classList.add('highlight');
+                }
+            });
+            
+            // Update explanation with rich content
+            if (step.explanationHtml) {
+                stepExplanation.innerHTML = step.explanationHtml;
+            } else {
+                stepExplanation.innerHTML = `<p>${step.explanation}</p>`;
+            }
+            
+            // Render the current state with visual aids
+            renderStepState(step);
+            
+            // Adjust timing based on animation speed
+            const baseDelay = 2000 / animationSpeed;
+            
+            // If there's a delay before the next action, schedule it with adjusted timing
+            if (step.delayNext) {
+                setTimeout(() => {
+                    if (animationPaused) return;
+                    
+                    if (step.nextVisualData) {
+                        renderLinkedList(step.nextVisualData);
+                    }
+                }, step.delayNext / animationSpeed);
+            }
+        }
+        
+        // Render step state
+        function renderStepState(step) {
+            renderLinkedList(step.visualData);
+        }
+        
+        // Render the linked list
+        function renderLinkedList(stepData = null) {
+            linkedListContainer.innerHTML = '';
+            
+            if (!linkedList.head) {
+                linkedListContainer.innerHTML = '<p style="text-align: center; padding: 40px; font-size: 18px;">The list is empty</p>';
+                return;
+            }
+            
+            let current = linkedList.head;
+            let index = 0;
+            
+            // Array to store node elements for later animations
+            const nodeElements = [];
+            
+            while (current) {
+                const nodeElement = document.createElement('div');
+                nodeElement.className = 'node';
+                nodeElement.dataset.value = current.data; // Store value for reference
+                
+                const nodeContent = document.createElement('div');
+                nodeContent.className = 'node-content';
+                
+                // If it's the head node, add the label
+                if (index === 0) {
+                    const headLabel = document.createElement('div');
+                    headLabel.className = 'head-label';
+                    headLabel.textContent = 'HEAD';
+                    nodeContent.appendChild(headLabel);
+                }
+                
+                // Create the data box
+                const dataBox = document.createElement('div');
+                dataBox.className = 'data-box';
+                dataBox.textContent = current.data;
+                nodeContent.appendChild(dataBox);
+                
+                // Create the next box
+                const nextBox = document.createElement('div');
+                nextBox.className = current.next ? 'next-box' : 'next-box null-box';
+                nextBox.textContent = current.next ? 'NEXT' : 'NULL';
+                nodeContent.appendChild(nextBox);
+                
+                nodeElement.appendChild(nodeContent);
+                
+                // Add arrow if there's a next node
+                if (current.next) {
+                    const arrow = document.createElement('div');
+                    arrow.className = 'arrow';
+                    arrow.innerHTML = '→';
+                    nodeElement.appendChild(arrow);
+                }
+                
+                // If there's step data, add pointers and animations
+                if (stepData) {
+                    // Add current pointer
+                    if (stepData.currentNode !== undefined && stepData.currentNode === index) {
+                        const currentLabel = document.createElement('div');
+                        currentLabel.className = 'pointer-label current-pointer';
+                        currentLabel.textContent = 'CURRENT';
+                        nodeElement.appendChild(currentLabel);
+                        nodeElement.classList.add('highlight');
+                    }
+                    
+                    // Add previous pointer
+                    if (stepData.previousNode !== undefined && stepData.previousNode === index) {
+                        const prevLabel = document.createElement('div');
+                        prevLabel.className = 'pointer-label previous-pointer';
+                        prevLabel.textContent = 'PREVIOUS';
+                        nodeElement.appendChild(prevLabel);
+                        // Add subtle highlight to previous node
+                        if (!nodeElement.classList.contains('highlight')) {
+                            nodeElement.style.boxShadow = "0 0 10px rgba(139, 195, 74, 0.5)";
+                        }
+                    }
+                    
+                    // Add new node highlight
+                    if (stepData.newNode !== undefined && stepData.newNode === index) {
+                        nodeElement.classList.add('new-node');
+                        
+                        const newNodeLabel = document.createElement('div');
+                        newNodeLabel.className = 'pointer-label new-node-pointer';
+                        newNodeLabel.textContent = 'NEW NODE';
+                        nodeElement.appendChild(newNodeLabel);
+                    }
+                    
+                    // Add deleting node effect
+                    if (stepData.deletingNode !== undefined && stepData.deletingNode === index) {
+                        nodeElement.classList.add('deleting');
+                        
+                        // If this node has an arrow, mark it for deletion too
+                        if (current.next) {
+                            const arrow = nodeElement.querySelector('.arrow');
+                            if (arrow) arrow.classList.add('deleting');
+                        }
+                    }
+                    
+                    // Add redirecting arrow effect
+                    if (stepData.redirectArrow !== undefined && stepData.redirectArrow === index) {
+                        const arrow = nodeElement.querySelector('.arrow');
+                        if (arrow) arrow.classList.add('redirecting');
+                    }
+                }
+                
+                linkedListContainer.appendChild(nodeElement);
+                nodeElements.push(nodeElement);
+                current = current.next;
+                index++;
+            }
+            
+            // Special case for new node visualization
+            if (stepData && stepData.newNode === -1) {
+                const newNodeElement = document.createElement('div');
+                newNodeElement.className = 'node new-node';
+                
+                const nodeContent = document.createElement('div');
+                nodeContent.className = 'node-content';
+                
+                const newNodeLabel = document.createElement('div');
+                newNodeLabel.className = 'pointer-label new-node-pointer';
+                newNodeLabel.textContent = 'NEW NODE';
+                nodeContent.appendChild(newNodeLabel);
+                
+                // Create the data box
+                const dataBox = document.createElement('div');
+                dataBox.className = 'data-box';
+                dataBox.textContent = insertValueInput.value || '?';
+                nodeContent.appendChild(dataBox);
+                
+                // Create the next box
+                const nextBox = document.createElement('div');
+                nextBox.className = 'next-box null-box';
+                nextBox.textContent = 'NULL';
+                nodeContent.appendChild(nextBox);
+                
+                newNodeElement.appendChild(nodeContent);
+                
+                // Add to the beginning of the linked list for visualization
+                linkedListContainer.insertBefore(newNodeElement, linkedListContainer.firstChild);
+            }
+            
+            // Add linking/cutting animations if specified in step data
+            if (stepData && stepData.linkingNodes) {
+                const [fromIdx, toIdx] = stepData.linkingNodes;
+                let fromNode, toNode;
+                
+                if (fromIdx === -1) {
+                    // Special case for the new node
+                    fromNode = linkedListContainer.firstChild;
+                } else if (fromIdx >= 0 && fromIdx < nodeElements.length) {
+                    fromNode = nodeElements[fromIdx];
+                }
+                
+                if (toIdx === -1) {
+                    // Special case for the new node
+                    toNode = linkedListContainer.firstChild;
+                } else if (toIdx >= 0 && toIdx < nodeElements.length) {
+                    toNode = nodeElements[toIdx];
+                }
+                
+                if (fromNode && toNode) {
+                    const linkAnim = document.createElement('div');
+                    linkAnim.className = 'linking-animation';
+                    linkAnim.style.top = `${fromNode.offsetTop + 40}px`;
+                    linkAnim.style.left = `${fromNode.offsetLeft + fromNode.offsetWidth}px`;
+                    linkAnim.style.width = `${toNode.offsetLeft - (fromNode.offsetLeft + fromNode.offsetWidth)}px`;
+                    
+                    linkedListContainer.appendChild(linkAnim);
+                    
+                    // Remove after animation completes
+                    setTimeout(() => linkAnim.remove(), 1000 / animationSpeed);
+                }
+            }
+            
+            if (stepData && stepData.cuttingNodes) {
+                const [fromIdx, toIdx] = stepData.cuttingNodes;
+                if (fromIdx >= 0 && fromIdx < nodeElements.length && 
+                    toIdx >= 0 && toIdx < nodeElements.length) {
+                    
+                    const fromNode = nodeElements[fromIdx];
+                    const toNode = nodeElements[toIdx];
+                    
+                    const cutAnim = document.createElement('div');
+                    cutAnim.className = 'cutting-animation';
+                    cutAnim.style.top = `${fromNode.offsetTop + 40}px`;
+                    cutAnim.style.left = `${fromNode.offsetLeft + fromNode.offsetWidth}px`;
+                    cutAnim.style.width = `${toNode.offsetLeft - (fromNode.offsetLeft + fromNode.offsetWidth)}px`;
+                    
+                    linkedListContainer.appendChild(cutAnim);
+                    
+                    // Remove after animation completes
+                    setTimeout(() => cutAnim.remove(), 1000 / animationSpeed);
+                }
+            }
+            
+            // Add operation visuals if specified
+            if (stepData && stepData.operationText) {
+                const operationVisual = document.createElement('div');
+                operationVisual.className = 'operation-visual';
+                operationVisual.innerHTML = `<span style="color: #8BC34A;">/* Current Operation */</span><br>${stepData.operationText}`;
+                linkedListContainer.appendChild(operationVisual);
+            }
+        }
+        
+        // Prepare insertion steps
+        function prepareInsertAtBeginningSteps(value) {
+            insertSteps = [
+                {
+                    explanation: `Create a new node with data = ${value}`,
+                    explanationHtml: `<p>First, we allocate memory for a new node in the linked list.</p>
+                        <p>We initialize this node with:</p>
+                        <ul>
+                            <li><strong style="color: #2196F3;">data = ${value}</strong>: The value stored in the node</li>
+                            <li><strong style="color: #FF9800;">next = NULL</strong>: The pointer to the next node (initially NULL)</li>
+                        </ul>
+                        <p>This creates a standalone node that isn't connected to our list yet.</p>`,
+                    highlightLines: [2, 3, 4, 5],
+                    visualData: {
+                        operationText: `// Create a new node<br>node* new_node = new node;<br>new_node->data = ${value};<br>new_node->next = NULL;`
+                    }
+                },
+                {
+                    explanation: `Set new_node->next to point to the current head (linking the new node to the list)`,
+                    explanationHtml: `<p>To insert at the beginning, we need to link our new node to the current head of the list.</p>
+                        <p>We set <code>new_node->next = head</code>, which makes our new node point to the current first node.</p>
+                        <p>This is a crucial step - without it, we would lose access to the rest of the list!</p>`,
+                    highlightLines: [7, 8],
+                    visualData: {
+                        operationText: `// Link new node to current head<br>new_node->next = head;`,
+                        newNode: -1, // Special position for visualization
+                        linkingNodes: [-1, 0] // From new node to current head
+                    }
+                },
+                {
+                    explanation: `Update head to point to the new node (making it the new first node)`,
+                    explanationHtml: `<p>Finally, we update the head pointer to point to our new node.</p>
+                        <p>The assignment <code>head = new_node</code> makes our new node the first node in the list.</p>
+                        <p>After this operation, the insertion at the beginning is complete!</p>
+                        <p>The time complexity of inserting at the beginning is O(1) because it requires a constant number of operations regardless of list size.</p>`,
+                    highlightLines: [8],
+                    visualData: {
+                        operationText: `// Update head pointer<br>head = new_node;`,
+                        newNode: -1 // Special position for visualization
+                    }
+                }
+            ];
+        }
+        
+        function prepareInsertAtEndSteps(value) {
+            let lastNodeIndex = -1;
+            
+            // Find the last node index
+            if (linkedList.head) {
+                let current = linkedList.head;
+                let index = 0;
+                
+                while (current.next) {
+                    current = current.next;
+                    index++;
+                }
+                
+                lastNodeIndex = index;
+            }
+            
+            insertSteps = [
+                {
+                    explanation: `Create a new node with data = ${value}`,
+                    explanationHtml: `<p>First, we allocate memory for a new node in the linked list.</p>
+                        <p>We initialize this node with:</p>
+                        <ul>
+                            <li><strong style="color: #2196F3;">data = ${value}</strong>: The value stored in the node</li>
+                            <li><strong style="color: #FF9800;">next = NULL</strong>: The pointer to the next node (always NULL for end insertion)</li>
+                        </ul>
+                        <p>This creates a standalone node that will become the last node in our list.</p>`,
+                    highlightLines: [2, 3, 4, 5],
+                    visualData: {
+                        operationText: `// Create a new node<br>node* new_node = new node;<br>new_node->data = ${value};<br>new_node->next = NULL;`,
+                        newNode: -1 // Special position for visualization
+                    }
+                },
+                {
+                    explanation: `Check if the list is empty (head is NULL)`,
+                    explanationHtml: `<p>We need to check if the list is empty by examining the head pointer.</p>
+                        <p>This is important because insertion at the end has two different cases:</p>
+                        <ul>
+                            <li>If the list is empty, the new node becomes the head</li>
+                            <li>If the list has elements, we need to find the last node first</li>
+                        </ul>`,
+                    highlightLines: [7],
+                    visualData: {
+                        operationText: `// Check if list is empty<br>if (head == NULL)`,
+                        newNode: -1 // Special position for visualization
+                    }
+                }
+            ];
+            
+            if (!linkedList.head) {
+                insertSteps.push({
+                    explanation: `The list is empty, so set head to point to the new node`,
+                    explanationHtml: `<p>Since the list is empty (head is NULL), our new node will be the first and only node in the list.</p>
+                        <p>We set <code>head = new_node</code> to make our new node the head of the list.</p>
+                        <p>This is a special case of end insertion when the list is empty.</p>`,
+                    highlightLines: [8],
+                    visualData: {
+                        operationText: `// List is empty, so make new node the head<br>head = new_node;`,
+                        newNode: -1 // Special position for visualization
+                    }
+                });
+            } else {
+                insertSteps.push(
+                    {
+                        explanation: `List is not empty, so initialize last = head to start traversal`,
+                        explanationHtml: `<p>Since the list is not empty, we need to find the last node to append our new node.</p>
+                            <p>We start by initializing <code>last = head</code> to begin our traversal from the first node.</p>
+                            <p>The 'last' pointer will help us find the end of the list.</p>`,
+                        highlightLines: [10],
+                        visualData: {
+                            currentNode: 0, // Use current to represent 'last'
+                            operationText: `// Initialize traversal<br>last = head;`,
+                            newNode: -1 // Special position for visualization
+                        }
+                    },
+                    {
+                        explanation: `Traverse the list until we find the last node (where next is NULL)`,
+                        explanationHtml: `<p>Now we need to traverse the list to find the last node.</p>
+                            <p>We use a while loop that continues as long as <code>last->next != NULL</code>.</p>
+                            <p>In each iteration, we move the 'last' pointer to the next node with <code>last = last->next</code>.</p>
+                            <p>When the loop ends, 'last' will point to the final node in the list.</p>`,
+                        highlightLines: [11, 12, 13],
+                        visualData: {
+                            currentNode: 1, // Use current to represent 'last' moving
+                            operationText: `// Find the last node<br>while (last->next != NULL)<br>    last = last->next;`,
+                            newNode: -1 // Special position for visualization
+                        },
+                        delayNext: 1000,
+                        nextVisualData: {
+                            currentNode: lastNodeIndex,
+                            operationText: `// Found the last node`,
+                            newNode: -1
+                        }
+                    },
+                    {
+                        explanation: `Link the last node to our new node by setting last->next = new_node`,
+                        explanationHtml: `<p>Finally, we connect the last node to our new node.</p>
+                            <p>The assignment <code>last->next = new_node</code> links the current last node to our new node.</p>
+                            <p>This makes our new node the new last node in the list.</p>
+                            <p>The time complexity of inserting at the end is O(n) because we need to traverse the entire list to find the last node.</p>`,
+                        highlightLines: [14],
+                        visualData: {
+                            currentNode: lastNodeIndex,
+                            operationText: `// Link last node to new node<br>last->next = new_node;`,
+                            newNode: -1,
+                            linkingNodes: [lastNodeIndex, -1]
+                        }
+                    }
+                );
+            }
+        }
+        
+        function prepareInsertAfterValueSteps(afterValue, value) {
+            let targetNodeIndex = -1;
+            
+            // Find the node with afterValue
+            if (linkedList.head) {
+                let current = linkedList.head;
+                let index = 0;
+                
+                while (current) {
+                    if (current.data === afterValue) {
+                        targetNodeIndex = index;
+                        break;
+                    }
+                    current = current.next;
+                    index++;
+                }
+            }
+            
+            insertSteps = [
+                {
+                    explanation: `Create a new node with data = ${value}`,
+                    explanationHtml: `<p>First, we allocate memory for a new node in the linked list.</p>
+                        <p>We initialize this node with:</p>
+                        <ul>
+                            <li><strong style="color: #2196F3;">data = ${value}</strong>: The value stored in the node</li>
+                            <li><strong style="color: #FF9800;">next = NULL</strong>: The pointer to the next node (initially NULL)</li>
+                        </ul>
+                        <p>This creates a standalone node that we'll insert after a specific value.</p>`,
+                    highlightLines: [2, 3, 4, 5],
+                    visualData: {
+                        operationText: `// Create a new node<br>node* new_node = new node;<br>new_node->data = ${value};<br>new_node->next = NULL;`,
+                        newNode: -1
+                    }
+                },
+                {
+                    explanation: `Check if the list is empty (head is NULL)`,
+                    explanationHtml: `<p>First, we check if the list is empty by examining the head pointer.</p>
+                        <p>This is a special case that requires different handling.</p>`,
+                    highlightLines: [7],
+                    visualData: {
+                        operationText: `// Check if list is empty<br>if (head == NULL)`,
+                        newNode: -1
+                    }
+                }
+            ];
+            
+            if (!linkedList.head) {
+                insertSteps.push({
+                    explanation: `The list is empty, so set head to point to the new node`,
+                    explanationHtml: `<p>Since the list is empty (head is NULL), we can't find the value ${afterValue} to insert after.</p>
+                        <p>In this case, we simply make the new node the head of the list.</p>
+                        <p>This is a fallback behavior for when the target value doesn't exist.</p>`,
+                    highlightLines: [8],
+                    visualData: {
+                        operationText: `// List is empty, so make new node the head<br>head = new_node;`,
+                        newNode: -1
+                    }
+                });
+            } else if (targetNodeIndex >= 0) {
+                // Target node found
+                insertSteps.push(
+                    {
+                        explanation: `List is not empty, so we need to find the node with value ${afterValue}`,
+                        explanationHtml: `<p>Since the list is not empty, we need to find the node with value ${afterValue}.</p>
+                            <p>We start traversal from the head and search for this specific value.</p>`,
+                        highlightLines: [10, 11],
+                        visualData: {
+                            currentNode: 0,
+                            operationText: `// Initialize traversal to find target node<br>current = head;`,
+                            newNode: -1
+                        }
+                    },
+                    {
+                        explanation: `Traverse the list until we find the node or reach the end`,
+                        explanationHtml: `<p>We traverse the list using a while loop that continues until:</p>
+                            <ul>
+                                <li>We find a node with value ${afterValue}, or</li>
+                                <li>We reach the end of the list</li>
+                            </ul>
+                            <p>In each iteration, we move to the next node with <code>current = current->next</code>.</p>`,
+                        highlightLines: [11, 12, 13],
+                        visualData: {
+                            currentNode: 1,
+                            operationText: `// Search for the node with value ${afterValue}<br>while (current && current->data != ${afterValue})<br>    current = current->next;`,
+                            newNode: -1
+                        },
+                        delayNext: 1000,
+                        nextVisualData: {
+                            currentNode: targetNodeIndex,
+                            operationText: `// Found node with value ${afterValue}`,
+                            newNode: -1
+                        }
+                    },
+                    {
+                        explanation: `If we find the node, set new_node->next to the current node's next`,
+                        explanationHtml: `<p>Now that we've found the node with value ${afterValue}, we need to insert our new node after it.</p>
+                            <p>First, we set <code>new_node->next = current->next</code>.</p>
+                            <p>This makes our new node point to the same node that the current node points to.</p>
+                            <p>This step is crucial to maintain the list structure - without it, we would lose the rest of the list!</p>`,
+                        highlightLines: [14],
+                        visualData: {
+                            currentNode: targetNodeIndex,
+                            operationText: `// Link new node to current's next<br>new_node->next = current->next;`,
+                            newNode: -1,
+                            linkingNodes: [-1, targetNodeIndex + 1]
+                        }
+                    },
+                    {
+                        explanation: `Link the current node to our new node by setting current->next = new_node`,
+                        explanationHtml: `<p>Finally, we link the current node to our new node.</p>
+                            <p>The assignment <code>current->next = new_node</code> makes the current node point to our new node.</p>
+                            <p>This completes the insertion, placing our new node between the current node and the node that used to follow it.</p>
+                            <p>The time complexity of this operation is O(n) in the worst case, as we might need to traverse the entire list to find the target value.</p>`,
+                        highlightLines: [14],
+                        visualData: {
+                            currentNode: targetNodeIndex,
+                            operationText: `// Link current node to new node<br>current->next = new_node;`,
+                            newNode: -1,
+                            linkingNodes: [targetNodeIndex, -1]
+                        }
+                    }
+                );
+            } else {
+                // Target node not found
+                insertSteps.push(
+                    {
+                        explanation: `List is not empty, so we need to find the node with value ${afterValue}`,
+                        explanationHtml: `<p>Since the list is not empty, we need to find the node with value ${afterValue}.</p>
+                            <p>We start traversal from the head and search for this specific value.</p>`,
+                        highlightLines: [10, 11],
+                        visualData: {
+                            currentNode: 0,
+                            operationText: `// Initialize traversal to find target node<br>current = head;`,
+                            newNode: -1
+                        }
+                    },
+                    {
+                        explanation: `Traverse the list but don't find the value ${afterValue}`,
+                        explanationHtml: `<p>We traverse the entire list but don't find a node with value ${afterValue}.</p>
+                            <p>In this case, we'll insert the new node at the end of the list as a fallback behavior.</p>`,
+                        highlightLines: [11, 12, 13],
+                        visualData: {
+                            operationText: `// Value ${afterValue} not found in the list<br>// Falling back to insert at end`,
+                            newNode: -1
+                        }
+                    },
+                    {
+                        explanation: `Value not found, so insert at the end as a fallback`,
+                        explanationHtml: `<p>Since we couldn't find a node with value ${afterValue}, we'll insert the new node at the end of the list.</p>
+                            <p>This is a common fallback behavior when the target value doesn't exist.</p>
+                            <p>We first find the last node, then link it to our new node.</p>`,
+                        highlightLines: [14],
+                        visualData: {
+                            operationText: `// Insert at end as fallback<br>last->next = new_node;`,
+                            newNode: -1
+                        }
+                    }
+                );
+            }
+        }
+        
+        // Prepare deletion steps
+        function prepareDeleteNodeSteps(value) {
+            deleteSteps = [];
+            
+            if (!linkedList.head) {
+                deleteSteps.push({
+                    explanation: "The list is empty, nothing to delete.",
+                    explanationHtml: "<p>The list is empty, there are no nodes to delete.</p>",
+                    highlightLines: [1],
+                    visualData: {
+                        operationText: "// List is empty, nothing to delete"
+                    }
+                });
+                return;
+            }
+            
+            let targetNodeIndex = -1;
+            let previousNodeIndex = -1;
+            
+            // Find the indexes of the node to delete and its previous node
+            if (linkedList.head) {
+                let current = linkedList.head;
+                let index = 0;
+                
+                while (current) {
+                    if (current.data === value) {
+                        targetNodeIndex = index;
+                        break;
+                    }
+                    previousNodeIndex = index;
+                    current = current.next;
+                    index++;
+                }
+            }
+            
+            deleteSteps.push({
+                explanation: `Initialize current and previous pointers to the head of the list`,
+                explanationHtml: `<p>First, we initialize two pointers:</p>
+                    <ul>
+                        <li><strong style="color: #2196F3;">current</strong>: Points to the node we're currently examining</li>
+                        <li><strong style="color: #8BC34A;">previous</strong>: Will help us reconnect the list after deletion</li>
+                    </ul>
+                    <p>Both initially point to the head of the list.</p>`,
+                highlightLines: [2, 4, 5],
+                visualData: {
+                    currentNode: 0,
+                    previousNode: 0,
+                    operationText: "// Initialize pointers<br>current = head;<br>previous = head;"
+                }
+            });
+            
+            deleteSteps.push({
+                explanation: `Check if the first node (head) contains the value to be deleted`,
+                explanationHtml: `<p>We first check if the head node contains the value ${value} that we want to delete.</p>
+                    <p>This is a special case that requires different handling than nodes in the middle or end.</p>
+                    <p>If <strong style="color: #2196F3;">current->data == ${value}</strong>, we need special handling for the head node.</p>`,
+                highlightLines: [7],
+                visualData: {
+                    currentNode: 0,
+                    previousNode: 0,
+                    operationText: `// Check if head contains the value to delete<br>if (current->data == ${value})`
+                }
+            });
+            
+            // Check if head has the value
+            if (linkedList.head && linkedList.head.data === value) {
+                deleteSteps.push(
+                    {
+                        explanation: `The head node contains the value ${value}, so update head to point to the next node`,
+                        explanationHtml: `<p>Since the head node contains the value ${value}, we need to update the head pointer.</p>
+                            <p>We set <code>head = current->next</code>, which makes the second node the new head of the list.</p>
+                            <p>This effectively removes the first node from the list.</p>`,
+                        highlightLines: [8],
+                        visualData: {
+                            currentNode: 0,
+                            previousNode: 0,
+                            operationText: `// Head node contains the value ${value}<br>head = current->next;`,
+                            redirectArrow: 0
+                        },
+                        delayNext: 1000
+                    },
+                    {
+                        explanation: `Free the memory allocated to the current node (delete it)`,
+                        explanationHtml: `<p>Now we free the memory allocated to the node we're deleting.</p>
+                            <p>In C++, the <code>free(current)</code> call releases the memory that was dynamically allocated for this node.</p>
+                            <p>This is crucial to prevent memory leaks in your program.</p>`,
+                        highlightLines: [9],
+                        visualData: {
+                            deletingNode: 0,
+                            operationText: `// Free the memory<br>free(current);`
+                        }
+                    },
+                    {
+                        explanation: `Return from the function as deletion is complete`,
+                        explanationHtml: `<p>Since we've successfully deleted the node and updated the list structure, we return from the function.</p>
+                            <p>No further operations are needed in this case.</p>`,
+                        highlightLines: [10],
+                        visualData: {
+                            operationText: `// Deletion complete<br>return;`
+                        }
+                    }
+                );
+            } else if (targetNodeIndex > 0) {
+                // Steps for traversing to find the node
+                deleteSteps.push({
+                    explanation: `Head doesn't have the value ${value}, so traverse the list to find it`,
+                    explanationHtml: `<p>Since the head node doesn't contain the value ${value}, we need to traverse the list to find it.</p>
+                        <p>We'll use a while loop to move both pointers through the list until we find the target node.</p>`,
+                    highlightLines: [14],
+                    visualData: {
+                        currentNode: 0,
+                        previousNode: 0,
+                        operationText: `// Traverse the list to find the node<br>while (current->data != ${value})`
+                    }
+                });
+                
+                // Show the traversal process step by step
+                // First step of traversal - move pointers one position
+                deleteSteps.push({
+                    explanation: `Update previous to current, and move current to the next node`,
+                    explanationHtml: `<p>Inside our traversal loop:</p>
+                        <ul>
+                            <li><strong style="color: #8BC34A;">previous = current</strong>: The previous pointer follows behind the current</li>
+                            <li><strong style="color: #2196F3;">current = current->next</strong>: The current pointer moves to the next node</li>
+                        </ul>
+                        <p>This maintains a gap of one node between them, which is crucial for deletion.</p>`,
+                    highlightLines: [15, 16],
+                    visualData: {
+                        currentNode: 1,
+                        previousNode: 0,
+                        operationText: `// First traversal step<br>previous = current;<br>current = current->next;`
+                    }
+                });
+                
+                // If target is beyond the immediate next node, show another step
+                if (targetNodeIndex > 1) {
+                    deleteSteps.push({
+                        explanation: `Continue traversal until we find the node with value ${value}`,
+                        explanationHtml: `<p>We continue traversing the list:</p>
+                            <ul>
+                                <li><strong style="color: #8BC34A;">previous</strong> now points to node with value ${linkedList.head.data}</li>
+                                <li><strong style="color: #2196F3;">current</strong> now points to node with value ${linkedList.head.next.data}</li>
+                            </ul>
+                            <p>Since current->data != ${value}, we continue the traversal.</p>`,
+                        highlightLines: [15, 16],
+                        visualData: {
+                            currentNode: 2,
+                            previousNode: 1,
+                            operationText: `// Continue traversal<br>previous = current;<br>current = current->next;`
+                        },
+                        delayNext: 1000
+                    });
+                    
+                    // If the target is still further, show a final traversal step
+                    if (targetNodeIndex > 2) {
+                        deleteSteps.push({
+                            explanation: `Final traversal step to reach the node with value ${value}`,
+                            explanationHtml: `<p>After multiple traversal steps:</p>
+                                <ul>
+                                    <li><strong style="color: #8BC34A;">previous</strong> now points to the node before our target</li>
+                                    <li><strong style="color: #2196F3;">current</strong> has reached the node with value ${value}</li>
+                                </ul>
+                                <p>Now we can proceed with the deletion.</p>`,
+                            highlightLines: [15, 16],
+                            visualData: {
+                                currentNode: targetNodeIndex,
+                                previousNode: targetNodeIndex - 1,
+                                operationText: `// Final position after traversal<br>// current->data == ${value}<br>// Ready for deletion`
+                            }
+                        });
+                    }
+                }
+                
+                // Deletion steps after finding the node
+                deleteSteps.push({
+                    explanation: `Once we find the node with value ${value}, set previous->next to current->next (bypassing the node)`,
+                    explanationHtml: `<p>Now that we've found the node to delete (current) and have a pointer to the node before it (previous), we can remove it from the list.</p>
+                        <p>The key operation is: <code>previous->next = current->next</code></p>
+                        <p>This makes the previous node point directly to the node after current, effectively bypassing the node we want to delete.</p>
+                        <p>This is the core of the deletion process - we're "cutting out" the node from the linked chain.</p>`,
+                    highlightLines: [19],
+                    visualData: {
+                        currentNode: targetNodeIndex,
+                        previousNode: targetNodeIndex - 1,
+                        cuttingNodes: [targetNodeIndex - 1, targetNodeIndex],
+                        operationText: `// Bypass the node to be deleted<br>previous->next = current->next;`
+                    },
+                    delayNext: 1000,
+                    nextVisualData: {
+                        previousNode: targetNodeIndex - 1,
+                        redirectArrow: targetNodeIndex - 1,
+                        operationText: `// Node is now bypassed in the list structure`
+                    }
+                });
+                
+                deleteSteps.push({
+                    explanation: `Free the memory allocated to the current node (delete it)`,
+                    explanationHtml: `<p>Finally, we free the memory allocated to the node we've removed from the list.</p>
+                        <p>Even though we've bypassed the node in the list structure, its memory is still allocated.</p>
+                        <p>The <code>free(current)</code> call releases this memory, preventing memory leaks.</p>
+                        <p>After this operation, the deletion is complete and the list structure is maintained.</p>`,
+                    highlightLines: [20],
+                    visualData: {
+                        deletingNode: targetNodeIndex,
+                        previousNode: targetNodeIndex - 1,
+                        operationText: `// Free the memory<br>free(current);`
+                    }
+                });
+            } else {
+                // Node not found
+                deleteSteps.push({
+                    explanation: `The value ${value} was not found in the list. No deletion performed.`,
+                    explanationHtml: `<p>The value ${value} was not found in any node in the list.</p>
+                        <p>In this case, no deletion is performed and the list remains unchanged.</p>
+                        <p>A more robust implementation would include error handling for this case.</p>`,
+                    highlightLines: [14],
+                    visualData: {
+                        operationText: `// Value ${value} not found in the list<br>// No deletion performed`
+                    }
+                });
+            }
+        }
+        
+        // Sample data for demonstration
+        function loadSampleData() {
+            linkedList.insertAtEnd(5);
+            linkedList.insertAtEnd(10);
+            linkedList.insertAtEnd(15);
+            linkedList.insertAtEnd(7);
+            renderLinkedList();
+        }
+        
+        // Load sample data on page load
+        loadSampleData();
+    </script>
+</body>
+</html>

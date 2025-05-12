@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stack Detailed Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .simulation-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 40px;
+        }
+        
+        .stack-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .controls-section {
+            flex: 1;
+            padding: 0 20px;
+        }
+        
+        .memory-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .memory-section h3, .stack-section h3 {
+            align-self: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        /* Stack visualization styles */
+        .stack-container {
+            width: 200px;
+            height: 400px;
+            border: 3px solid #34495e;
+            border-radius: 5px;
+            background-color: #ecf0f1;
+            position: relative;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stack-bottom {
+            width: 100%;
+            height: 10px;
+            background-color: #34495e;
+            position: absolute;
+            bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .bottom-label {
+            position: absolute;
+            bottom: -25px;
+            color: #7f8c8d;
+            font-weight: bold;
+        }
+        
+        .top-pointer {
+            width: 80px;
+            height: 30px;
+            background-color: #e74c3c;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            position: absolute;
+            left: -100px;
+            font-weight: bold;
+            transition: top 0.5s ease;
+            z-index: 100;
+        }
+        
+        .top-pointer::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-left: 10px solid #e74c3c;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+        
+        .stack-element {
+            width: 180px;
+            height: 40px;
+            margin: 5px;
+            background-color: #3498db;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            font-weight: bold;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.5s ease;
+        }
+        
+        .stack-element.top {
+            background-color: #e67e22;
+        }
+        
+        .stack-element.entering {
+            animation: enter 1s forwards;
+        }
+        
+        .stack-element.exiting {
+            animation: exit 1s forwards;
+        }
+        
+        .stack-element.waiting {
+            position: absolute;
+            right: -250px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        /* Memory visualization styles */
+        .memory-container {
+            width: 250px;
+            border: 3px solid #34495e;
+            border-radius: 5px;
+            background-color: #ecf0f1;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .memory-header {
+            display: flex;
+            background-color: #34495e;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .memory-header div {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-right: 1px solid #ecf0f1;
+        }
+        
+        .memory-row {
+            display: flex;
+            border-bottom: 1px solid #bdc3c7;
+            transition: background-color 0.5s ease;
+        }
+        
+        .memory-row.active {
+            background-color: rgba(231, 76, 60, 0.2);
+        }
+        
+        .memory-row div {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-right: 1px solid #bdc3c7;
+        }
+        
+        /* Controls styles */
+        .controls {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            flex: 1;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+        
+        #pushBtn {
+            background-color: #2ecc71;
+        }
+        
+        #popBtn {
+            background-color: #e74c3c;
+        }
+        
+        #peekBtn {
+            background-color: #f39c12;
+        }
+        
+        #resetBtn {
+            background-color: #3498db;
+        }
+        
+        .info-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .info-label {
+            flex: 1;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .info-value {
+            flex: 1;
+            color: #7f8c8d;
+        }
+        
+        /* Animation keyframes */
+        @keyframes enter {
+            0% {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes exit {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+        }
+        
+        /* Console */
+        .console {
+            width: 100%;
+            max-width: 1200px;
+            height: 200px;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .console-entry {
+            margin-bottom: 5px;
+            line-height: 1.5;
+        }
+        
+        .console-push {
+            color: #2ecc71;
+        }
+        
+        .console-pop {
+            color: #e74c3c;
+        }
+        
+        .console-peek {
+            color: #f39c12;
+        }
+        
+        .console-error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .console-info {
+            color: #3498db;
+        }
+        
+        /* Process visualization */
+        .process-visualization {
+            width: 100%;
+            max-width: 1200px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .process-title {
+            margin-top: 0;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .lifo-example {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .lifo-container {
+            width: 150px;
+            height: 300px;
+            border: 2px solid #34495e;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .lifo-element {
+            width: 130px;
+            height: 40px;
+            margin: 5px;
+            background-color: #3498db;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .lifo-arrow {
+            font-size: 40px;
+            color: #2c3e50;
+        }
+        
+        .lifo-operations {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .lifo-operation {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .lifo-operation-step {
+            width: 30px;
+            height: 30px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Stack Data Structure Simulation</h1>
+    <p class="subtitle">Visual demonstration of LIFO (Last-In, First-Out) principle</p>
+    
+    <div class="simulation-container">
+        <div class="stack-section">
+            <h3>Stack Visualization</h3>
+            <div class="stack-container" id="stack">
+                <div class="stack-bottom"></div>
+                <div class="bottom-label">Bottom of Stack</div>
+                <div class="top-pointer" id="topPointer">TOP</div>
+            </div>
+        </div>
+        
+        <div class="controls-section">
+            <div class="controls">
+                <div class="input-group">
+                    <label for="elementInput">Element Value:</label>
+                    <input type="text" id="elementInput" placeholder="Enter a value">
+                </div>
+                
+                <div class="button-group">
+                    <button id="pushBtn">PUSH</button>
+                    <button id="popBtn">POP</button>
+                </div>
+                
+                <div class="button-group">
+                    <button id="peekBtn">PEEK</button>
+                    <button id="resetBtn">RESET</button>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <h3>Stack Information</h3>
+                
+                <div class="info-row">
+                    <div class="info-label">Stack Size:</div>
+                    <div class="info-value" id="stackSize">0</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Max Size:</div>
+                    <div class="info-value" id="maxSize">8</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Top Element:</div>
+                    <div class="info-value" id="topElement">None</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Is Empty:</div>
+                    <div class="info-value" id="isEmpty">Yes</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Is Full:</div>
+                    <div class="info-value" id="isFull">No</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="memory-section">
+            <h3>Memory Representation</h3>
+            <div class="memory-container" id="memory">
+                <div class="memory-header">
+                    <div>Index</div>
+                    <div>Value</div>
+                </div>
+                <!-- Memory rows will be added dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="process-visualization">
+        <h3 class="process-title">LIFO Principle (Last-In, First-Out)</h3>
+        
+        <div class="lifo-operations">
+            <div class="lifo-operation">
+                <div class="lifo-operation-step">1</div>
+                <p>When you <strong>PUSH</strong> an element, it goes to the <strong>TOP</strong> of the stack</p>
+            </div>
+            <div class="lifo-operation">
+                <div class="lifo-operation-step">2</div>
+                <p>When you <strong>POP</strong> an element, it removes the element from the <strong>TOP</strong> of the stack</p>
+            </div>
+            <div class="lifo-operation">
+                <div class="lifo-operation-step">3</div>
+                <p>The <strong>TOP</strong> element is always the <strong>LAST</strong> element that was pushed to the stack</p>
+            </div>
+            <div class="lifo-operation">
+                <div class="lifo-operation-step">4</div>
+                <p>This creates a <strong>LIFO</strong> order - the elements come out in the <strong>reverse order</strong> they went in</p>
+            </div>
+        </div>
+        
+        <div class="lifo-example">
+            <div class="lifo-container">
+                <div class="lifo-element">Element 1</div>
+                <div class="lifo-element">Element 2</div>
+                <div class="lifo-element">Element 3</div>
+                <div class="lifo-element">Element 4</div>
+            </div>
+            
+            <div class="lifo-arrow">→</div>
+            
+            <div class="lifo-container">
+                <div class="lifo-element">Element 4</div>
+                <div class="lifo-element">Element 3</div>
+                <div class="lifo-element">Element 2</div>
+                <div class="lifo-element">Element 1</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="console" id="console">
+        <div class="console-entry console-info">Stack simulation initialized. Maximum stack size: 8</div>
+    </div>
+    
+    <script>
+        // Constants
+        const MAX_STACK_SIZE = 8;
+        
+        // DOM elements
+        const stack = document.getElementById('stack');
+        const topPointer = document.getElementById('topPointer');
+        const elementInput = document.getElementById('elementInput');
+        const pushBtn = document.getElementById('pushBtn');
+        const popBtn = document.getElementById('popBtn');
+        const peekBtn = document.getElementById('peekBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const stackSizeEl = document.getElementById('stackSize');
+        const maxSizeEl = document.getElementById('maxSize');
+        const topElementEl = document.getElementById('topElement');
+        const isEmptyEl = document.getElementById('isEmpty');
+        const isFullEl = document.getElementById('isFull');
+        const memoryContainer = document.getElementById('memory');
+        const consoleEl = document.getElementById('console');
+        
+        // Stack data
+        let stackData = [];
+        
+        // Initialize
+        function initialize() {
+            // Set max size display
+            maxSizeEl.textContent = MAX_STACK_SIZE;
+            
+            // Initialize memory representation
+            for (let i = MAX_STACK_SIZE - 1; i >= 0; i--) {
+                const memoryRow = document.createElement('div');
+                memoryRow.classList.add('memory-row');
+                memoryRow.id = `memory-${i}`;
+                
+                const indexCell = document.createElement('div');
+                indexCell.textContent = i;
+                
+                const valueCell = document.createElement('div');
+                valueCell.textContent = 'empty';
+                valueCell.id = `value-${i}`;
+                
+                memoryRow.appendChild(indexCell);
+                memoryRow.appendChild(valueCell);
+                
+                memoryContainer.appendChild(memoryRow);
+            }
+            
+            // Position top pointer
+            updateTopPointer();
+        }
+        
+        // Add console entry
+        function logToConsole(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.classList.add('console-entry', `console-${type}`);
+            entry.textContent = message;
+            consoleEl.appendChild(entry);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+        
+        // Update stack information
+        function updateStackInfo() {
+            stackSizeEl.textContent = stackData.length;
+            isEmptyEl.textContent = stackData.length === 0 ? 'Yes' : 'No';
+            isFullEl.textContent = stackData.length === MAX_STACK_SIZE ? 'Yes' : 'No';
+            topElementEl.textContent = stackData.length > 0 ? stackData[stackData.length - 1] : 'None';
+            
+            // Update memory representation
+            for (let i = 0; i < MAX_STACK_SIZE; i++) {
+                const valueCell = document.getElementById(`value-${i}`);
+                const memoryRow = document.getElementById(`memory-${i}`);
+                
+                if (i < stackData.length) {
+                    valueCell.textContent = stackData[i];
+                    memoryRow.classList.add('active');
+                } else {
+                    valueCell.textContent = 'empty';
+                    memoryRow.classList.remove('active');
+                }
+            }
+            
+            // Update top elements
+            const elements = document.querySelectorAll('.stack-element');
+            elements.forEach(el => el.classList.remove('top'));
+            
+            if (elements.length > 0) {
+                elements[elements.length - 1].classList.add('top');
+            }
+            
+            // Update top pointer position
+            updateTopPointer();
+        }
+        
+        // Update top pointer position
+        function updateTopPointer() {
+            if (stackData.length === 0) {
+                topPointer.style.top = '95%';
+            } else {
+                const topElement = document.querySelector('.stack-element.top');
+                if (topElement) {
+                    const topPosition = topElement.offsetTop + (topElement.offsetHeight / 2);
+                    topPointer.style.top = `${topPosition}px`;
+                }
+            }
+        }
+        
+        // Push operation
+        function pushOperation() {
+            if (stackData.length >= MAX_STACK_SIZE) {
+                logToConsole('Stack Overflow! Cannot push more elements.', 'error');
+                return;
+            }
+            
+            const value = elementInput.value.trim() || `Item-${Math.floor(Math.random() * 100)}`;
+            elementInput.value = '';
+            
+            // Create waiting element outside the stack
+            const waitingElement = document.createElement('div');
+            waitingElement.classList.add('stack-element', 'waiting');
+            waitingElement.textContent = value;
+            stack.appendChild(waitingElement);
+            
+            // Animate the waiting element
+            setTimeout(() => {
+                waitingElement.classList.remove('waiting');
+                waitingElement.classList.add('entering');
+                
+                // Add to data structure
+                stackData.push(value);
+                updateStackInfo();
+                
+                logToConsole(`PUSH: Element "${value}" pushed onto the stack`, 'push');
+                
+                // Remove entering class after animation
+                setTimeout(() => {
+                    waitingElement.classList.remove('entering');
+                }, 1000);
+            }, 100);
+        }
+        
+        // Pop operation
+        function popOperation() {
+            if (stackData.length === 0) {
+                logToConsole('Stack Underflow! Cannot pop from an empty stack.', 'error');
+                return;
+            }
+            
+            const value = stackData.pop();
+            const topElement = document.querySelector('.stack-element.top');
+            
+            if (topElement) {
+                topElement.classList.add('exiting');
+                
+                setTimeout(() => {
+                    stack.removeChild(topElement);
+                    updateStackInfo();
+                }, 1000);
+            }
+            
+            logToConsole(`POP: Element "${value}" popped from the stack`, 'pop');
+            updateStackInfo();
+        }
+        
+        // Peek operation
+        function peekOperation() {
+            if (stackData.length === 0) {
+                logToConsole('Stack is empty! Nothing to peek at.', 'error');
+                return;
+            }
+            
+            const topValue = stackData[stackData.length - 1];
+            logToConsole(`PEEK: Top element is "${topValue}" (without removing it)`, 'peek');
+            
+            // Highlight the top element
+            const topElement = document.querySelector('.stack-element.top');
+            const originalColor = topElement.style.backgroundColor;
+            
+            topElement.style.backgroundColor = '#9b59b6';
+            setTimeout(() => {
+                topElement.style.backgroundColor = originalColor;
+            }, 1000);
+        }
+        
+        // Reset operation
+        function resetOperation() {
+            stackData = [];
+            
+            // Remove all elements with animation
+            const elements = document.querySelectorAll('.stack-element');
+            elements.forEach(element => {
+                element.classList.add('exiting');
+            });
+            
+            setTimeout(() => {
+                while (stack.querySelector('.stack-element')) {
+                    stack.removeChild(stack.querySelector('.stack-element'));
+                }
+                updateStackInfo();
+            }, 1000);
+            
+            logToConsole('Stack has been reset. All elements removed.', 'info');
+        }
+        
+        // Event listeners
+        pushBtn.addEventListener('click', pushOperation);
+        popBtn.addEventListener('click', popOperation);
+        peekBtn.addEventListener('click', peekOperation);
+        resetBtn.addEventListener('click', resetOperation);
+        
+        // Allow pressing Enter in input field
+        elementInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                pushOperation();
+            }
+        });
+        
+        // Initialize the simulation
+        initialize();
+    </script>
+</body>
+</html>
