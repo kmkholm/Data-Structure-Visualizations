@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Queue Data Structure Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+            --warning-color: #f8961e;
+            --info-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --code-bg: #2b2b2b;
+            --code-color: #ffca3a;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark-color);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            overflow: hidden;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            padding-bottom: 20px;
+        }
+        
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 25%;
+            width: 50%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .author {
+            color: var(--primary-color);
+            font-style: italic;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        button.danger {
+            background-color: var(--danger-color);
+        }
+        
+        button.success {
+            background-color: var(--success-color);
+        }
+        
+        button.warning {
+            background-color: var(--warning-color);
+        }
+        
+        button.info {
+            background-color: var(--info-color);
+        }
+        
+        input, select {
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            width: 100px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.25);
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 250px;
+        }
+        
+        .slider-container label {
+            white-space: nowrap;
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+        
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            color: #6c757d;
+        }
+        
+        .tab:hover {
+            color: var(--primary-color);
+        }
+        
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .visualization {
+            position: relative;
+            height: 400px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            border-radius: 10px;
+            background-color: #f8f9fa;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        .queue-container {
+            position: relative;
+            height: 150px;
+            margin: 50px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+        
+        .queue-element {
+            width: 80px;
+            height: 80px;
+            margin: 0 5px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 10px;
+            position: relative;
+            transition: all 0.5s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+        
+        .queue-element::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            transform: scale(0.9);
+            z-index: -1;
+            transition: all 0.3s ease;
+        }
+        
+        .queue-element:hover::before {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .queue-element.entering {
+            animation: enter var(--animation-duration, 1s) forwards;
+        }
+        
+        .queue-element.leaving {
+            animation: leave var(--animation-duration, 1s) forwards;
+        }
+        
+        @keyframes enter {
+            0% {
+                opacity: 0;
+                transform: translateY(-100px) scale(0.5);
+            }
+            70% {
+                transform: translateY(20px) scale(1.1);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        @keyframes leave {
+            0% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+            30% {
+                transform: translateX(-20px) scale(1.1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-200px) scale(0.5);
+            }
+        }
+        
+        .queue-front, .queue-rear {
+            position: absolute;
+            font-weight: bold;
+            color: var(--dark-color);
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.5s ease;
+            z-index: 5;
+        }
+        
+        .queue-front {
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .queue-rear {
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .queue-info {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .info-item {
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+        
+        .info-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .info-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .info-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        .message {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .message.show {
+            opacity: 1;
+        }
+        
+        .message.success {
+            background-color: #d1f8ea;
+            color: #0ca678;
+            border-left: 5px solid #0ca678;
+        }
+        
+        .message.error {
+            background-color: #ffe3e3;
+            color: #fa5252;
+            border-left: 5px solid #fa5252;
+        }
+        
+        .message.info {
+            background-color: #e7f5ff;
+            color: #1c7ed6;
+            border-left: 5px solid #1c7ed6;
+        }
+        
+        .code-snippet {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--code-bg);
+            color: var(--code-color);
+            border-radius: 5px;
+            padding: 5px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.7rem;
+            line-height: 1.2;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+            text-align: center;
+            width: auto;
+            min-width: 100px;
+        }
+        
+        .code-snippet.show {
+            opacity: 1;
+        }
+        
+        .operations-log {
+            height: 150px;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: var(--dark-color);
+            color: var(--light-color);
+            border-radius: 10px;
+            font-family: monospace;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px 10px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+        
+        .log-entry:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .log-entry.enqueue {
+            border-left: 3px solid var(--success-color);
+        }
+        
+        .log-entry.dequeue {
+            border-left: 3px solid var(--danger-color);
+        }
+        
+        .log-entry.peek {
+            border-left: 3px solid var(--warning-color);
+        }
+        
+        .log-entry.clear {
+            border-left: 3px solid #9b59b6;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .code-display {
+            background-color: var(--code-bg);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            line-height: 1.5;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .code-display pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        
+        .code-display .comment {
+            color: #6A9955;
+        }
+        
+        .code-display .keyword {
+            color: #569CD6;
+        }
+        
+        .code-display .function {
+            color: #DCDCAA;
+        }
+        
+        .code-display .string {
+            color: #CE9178;
+        }
+        
+        .code-display .number {
+            color: #B5CEA8;
+        }
+        
+        .code-display .operator {
+            color: #D4D4D4;
+        }
+        
+        .code-display .highlight {
+            background-color: rgba(255, 202, 58, 0.2);
+            display: inline-block;
+            width: 100%;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .queue-element {
+                width: 60px;
+                height: 60px;
+                font-size: 1.2rem;
+            }
+            
+            .info-item {
+                min-width: 70px;
+                padding: 5px;
+            }
+            
+            .info-value {
+                font-size: 1.2rem;
+            }
+            
+            .slider-container {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Advanced Queue Data Structure Simulation</h1>
+            <div class="author">By Dr. Mohammed Tawfik</div>
+        </header>
+        
+        <div class="message" id="message"></div>
+        
+        <div class="queue-info">
+            <div class="info-item">
+                <div class="info-value" id="queue-size">0</div>
+                <div class="info-label">Size</div>
+            </div>
+            <div class="info-item">
+                <div class="info-value" id="queue-front-value">-</div>
+                <div class="info-label">Front</div>
+            </div>
+            <div class="info-item">
+                <div class="info-value" id="queue-rear-value">-</div>
+                <div class="info-label">Rear</div>
+            </div>
+            <div class="info-item">
+                <div class="info-value" id="queue-is-empty">Yes</div>
+                <div class="info-label">Is Empty?</div>
+            </div>
+            <div class="info-item">
+                <div class="info-value" id="queue-is-full">No</div>
+                <div class="info-label">Is Full?</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <input type="text" id="enqueue-value" placeholder="Value">
+                <button id="enqueue-btn" class="success">Enqueue</button>
+            </div>
+            <button id="dequeue-btn" class="danger">Dequeue</button>
+            <button id="peek-btn" class="warning">Peek</button>
+            <button id="clear-btn">Clear</button>
+            <div class="control-group">
+                <input type="number" id="max-size" placeholder="Max Size" value="10" min="1" max="20">
+                <button id="set-max-btn" class="info">Set Max Size</button>
+            </div>
+            <div class="slider-container">
+                <label for="animation-speed">Animation Speed:</label>
+                <input type="range" min="0.1" max="2" step="0.1" value="1" class="slider" id="animation-speed">
+                <span id="speed-value">1x</span>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="simulation">Simulation</div>
+            <div class="tab" data-tab="code">C++ Code</div>
+        </div>
+        
+        <div class="tab-content active" id="simulation-tab">
+            <div class="visualization">
+                <div class="queue-container" id="queue-container">
+                    <!-- Queue elements will be added here dynamically -->
+                    <div class="queue-front">Front</div>
+                    <div class="queue-rear">Rear</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="code-tab">
+            <div class="code-display">
+                <pre>
+<span class="keyword">#include</span><span class="operator">&lt;</span><span class="keyword">iostream</span><span class="operator">&gt;</span>  <span class="comment">// Required for input/output operations</span>
+<span class="keyword">using namespace</span> std;
+<span class="keyword">#define</span> SIZE 5  <span class="comment">// Defining the size of the queue</span>
+<span class="keyword">int</span> queue[SIZE];
+<span class="keyword">int</span> front = -1, rear = -1;  <span class="comment">// Initializing front and rear pointers</span>
+<span class="comment">// Function to add an element to the queue</span>
+<span class="keyword">void</span> <span class="function">enqueue</span>(<span class="keyword">int</span> value) {
+    <span class="keyword">if</span> (rear != SIZE - 1) {  <span class="comment">// Checking if the queue is full</span>
+        <span class="keyword">if</span> (front == -1 && rear == -1) {  <span class="comment">// If queue is empty</span>
+            front++;
+            <span class="highlight">queue[++rear] = value;  <span class="comment">// Insert element</span></span>
+        } <span class="keyword">else</span> {
+            <span class="highlight">queue[++rear] = value;  <span class="comment">// Insert element</span></span>
+        }
+    } <span class="keyword">else</span> {
+        cout << <span class="string">"Queue is full."</span> << endl;
+    }
+}
+<span class="comment">// Function to remove an element from the queue</span>
+<span class="keyword">void</span> <span class="function">dequeue</span>() {
+    <span class="keyword">if</span> (front != -1 && rear != -1 && front <= rear) {  <span class="comment">// If queue is not empty</span>
+        <span class="highlight">front++;  <span class="comment">// Remove element</span></span>
+    } <span class="keyword">else</span> {
+        cout << <span class="string">"Queue is empty."</span> << endl;
+    }
+}
+<span class="comment">// Function to get the front element of the queue</span>
+<span class="keyword">int</span> <span class="function">peek</span>() {
+    <span class="keyword">if</span> (front != -1 && rear != -1 && front <= rear) {  <span class="comment">// If queue is not empty</span>
+        <span class="highlight"><span class="keyword">return</span> queue[front];</span>
+    } <span class="keyword">else</span> {
+        cout << <span class="string">"Queue is empty."</span> << endl;
+        <span class="keyword">return</span> -1;
+    }
+}
+<span class="comment">// Function to display the queue elements</span>
+<span class="keyword">void</span> <span class="function">display</span>() {
+    <span class="keyword">if</span> (front != -1 && rear != -1 && front <= rear) {  <span class="comment">// If queue is not empty</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = front; i <= rear; i++) {
+            cout << queue[i] << <span class="string">"\t"</span>;
+        }
+        cout << endl;
+    } <span class="keyword">else</span> {
+        cout << <span class="string">"Queue is empty."</span> << endl;
+    }
+}
+<span class="keyword">int</span> <span class="function">main</span>() {
+    enqueue(1);
+    enqueue(7);
+    enqueue(6);
+    display();
+    dequeue();
+    display();
+    cout << <span class="string">"Peek = "</span> << peek() << endl;
+    <span class="keyword">return</span> 0;
+}
+                </pre>
+            </div>
+        </div>
+        
+        <h3>Operations Log</h3>
+        <div class="operations-log" id="operations-log">
+            <!-- Log entries will be added here dynamically -->
+        </div>
+        
+        <div class="footer">
+            <p>Advanced Queue Data Structure Simulation &copy; 2025</p>
+            <p>Presented by Dr. Mohammed Tawfik</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Queue implementation
+            class Queue {
+                constructor(maxSize = 10) {
+                    this.items = [];
+                    this.maxSize = maxSize;
+                    this.front = 0;
+                    this.rear = -1;
+                }
+                
+                // Basic queue operations
+                enqueue(element) {
+                    if (this.isFull()) {
+                        return false;
+                    }
+                    this.rear++;
+                    this.items.push(element);
+                    return true;
+                }
+                
+                dequeue() {
+                    if (this.isEmpty()) {
+                        return null;
+                    }
+                    const item = this.items.shift();
+                    if (this.rear > 0) {
+                        this.rear--;
+                    }
+                    return item;
+                }
+                
+                peek() {
+                    if (this.isEmpty()) {
+                        return null;
+                    }
+                    return this.items[0];
+                }
+                
+                clear() {
+                    this.items = [];
+                    this.rear = -1;
+                }
+                
+                isEmpty() {
+                    return this.items.length === 0;
+                }
+                
+                isFull() {
+                    return this.items.length >= this.maxSize;
+                }
+                
+                size() {
+                    return this.items.length;
+                }
+                
+                getItems() {
+                    return [...this.items];
+                }
+                
+                setMaxSize(size) {
+                    this.maxSize = size;
+                    // If current size exceeds new max size, remove excess elements
+                    while (this.items.length > this.maxSize) {
+                        this.items.pop();
+                        this.rear--;
+                    }
+                }
+            }
+            
+            // UI Controller
+            class QueueUI {
+                constructor() {
+                    this.queue = new Queue();
+                    this.animationEnabled = true;
+                    this.animationSpeed = 1;
+                    
+                    // DOM Elements
+                    this.queueContainer = document.getElementById('queue-container');
+                    this.enqueueBtn = document.getElementById('enqueue-btn');
+                    this.dequeueBtn = document.getElementById('dequeue-btn');
+                    this.peekBtn = document.getElementById('peek-btn');
+                    this.clearBtn = document.getElementById('clear-btn');
+                    this.enqueueInput = document.getElementById('enqueue-value');
+                    this.maxSizeInput = document.getElementById('max-size');
+                    this.setMaxBtn = document.getElementById('set-max-btn');
+                    this.animationSpeedSlider = document.getElementById('animation-speed');
+                    this.speedValueDisplay = document.getElementById('speed-value');
+                    this.messageEl = document.getElementById('message');
+                    this.operationsLog = document.getElementById('operations-log');
+                    
+                    // Info elements
+                    this.queueSizeEl = document.getElementById('queue-size');
+                    this.queueFrontEl = document.getElementById('queue-front-value');
+                    this.queueRearEl = document.getElementById('queue-rear-value');
+                    this.queueIsEmptyEl = document.getElementById('queue-is-empty');
+                    this.queueIsFullEl = document.getElementById('queue-is-full');
+                    
+                    // Pointer elements
+                    this.frontPointer = this.queueContainer.querySelector('.queue-front');
+                    this.rearPointer = this.queueContainer.querySelector('.queue-rear');
+                    
+                    // Tab elements
+                    this.tabs = document.querySelectorAll('.tab');
+                    this.tabContents = document.querySelectorAll('.tab-content');
+                    
+                    this.initEventListeners();
+                    this.updateUI();
+                }
+                
+                initEventListeners() {
+                    this.enqueueBtn.addEventListener('click', () => this.handleEnqueue());
+                    this.dequeueBtn.addEventListener('click', () => this.handleDequeue());
+                    this.peekBtn.addEventListener('click', () => this.handlePeek());
+                    this.clearBtn.addEventListener('click', () => this.handleClear());
+                    this.setMaxBtn.addEventListener('click', () => this.handleSetMaxSize());
+                    
+                    // Animation speed control
+                    this.animationSpeedSlider.addEventListener('input', () => {
+                        this.animationSpeed = parseFloat(this.animationSpeedSlider.value);
+                        this.speedValueDisplay.textContent = this.animationSpeed.toFixed(1) + 'x';
+                        document.documentElement.style.setProperty('--animation-duration', (1 / this.animationSpeed) + 's');
+                    });
+                    
+                    // Add keyboard support
+                    this.enqueueInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            this.handleEnqueue();
+                        }
+                    });
+                    
+                    this.maxSizeInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            this.handleSetMaxSize();
+                        }
+                    });
+                    
+                    // Tab switching
+                    this.tabs.forEach(tab => {
+                        tab.addEventListener('click', () => {
+                            const tabId = tab.getAttribute('data-tab');
+                            this.switchTab(tabId);
+                        });
+                    });
+                }
+                
+                switchTab(tabId) {
+                    // Remove active class from all tabs and contents
+                    this.tabs.forEach(tab => tab.classList.remove('active'));
+                    this.tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Add active class to selected tab and content
+                    document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                }
+                
+                getCodeSnippet(operation, value = null) {
+                    switch (operation) {
+                        case 'enqueue':
+                            return `rear++
+queue[rear] = "${value}"`;
+                            
+                        case 'dequeue':
+                            return `front++`;
+                            
+                        case 'peek':
+                            return `return queue[front]`;
+                            
+                        case 'clear':
+                            return `front = 0
+rear = -1`;
+                            
+                        case 'setMaxSize':
+                            return `SIZE = ${value}`;
+                            
+                        default:
+                            return '';
+                    }
+                }
+                
+                handleEnqueue() {
+                    const value = this.enqueueInput.value.trim();
+                    if (!value) {
+                        this.showMessage('Please enter a value to enqueue', 'error');
+                        return;
+                    }
+                    
+                    const success = this.queue.enqueue(value);
+                    if (success) {
+                        this.addLogEntry(`Enqueued: ${value}`, 'enqueue');
+                        this.showMessage(`Successfully enqueued: ${value}`, 'success');
+                        this.enqueueInput.value = '';
+                        this.renderQueue(true, 'enqueue', value);
+                    } else {
+                        this.showMessage('Queue is full! Cannot enqueue more items.', 'error');
+                    }
+                }
+                
+                handleDequeue() {
+                    const value = this.queue.dequeue();
+                    if (value !== null) {
+                        this.addLogEntry(`Dequeued: ${value}`, 'dequeue');
+                        this.showMessage(`Successfully dequeued: ${value}`, 'success');
+                        this.renderQueue(false, 'dequeue', value);
+                    } else {
+                        this.showMessage('Queue is empty! Cannot dequeue.', 'error');
+                    }
+                }
+                
+                handlePeek() {
+                    const value = this.queue.peek();
+                    if (value !== null) {
+                        this.addLogEntry(`Peeked: ${value}`, 'peek');
+                        this.showMessage(`Front element is: ${value}`, 'info');
+                        
+                        // Highlight the front element and show code
+                        const frontElement = this.queueContainer.querySelector('.queue-element:first-child');
+                        if (frontElement) {
+                            frontElement.style.transform = 'scale(1.1)';
+                            frontElement.style.boxShadow = '0 0 20px rgba(243, 156, 18, 0.7)';
+                            
+                            // Show code snippet
+                            const codeSnippet = frontElement.querySelector('.code-snippet');
+                            if (codeSnippet) {
+                                codeSnippet.textContent = this.getCodeSnippet('peek');
+                                codeSnippet.classList.add('show');
+                                
+                                setTimeout(() => {
+                                    codeSnippet.classList.remove('show');
+                                }, 3000 / this.animationSpeed);
+                            }
+                            
+                            setTimeout(() => {
+                                frontElement.style.transform = '';
+                                frontElement.style.boxShadow = '';
+                            }, 1000 / this.animationSpeed);
+                        }
+                    } else {
+                        this.showMessage('Queue is empty! Nothing to peek.', 'error');
+                    }
+                }
+                
+                handleClear() {
+                    if (this.queue.isEmpty()) {
+                        this.showMessage('Queue is already empty!', 'info');
+                        return;
+                    }
+                    
+                    this.queue.clear();
+                    this.addLogEntry('Queue cleared', 'clear');
+                    this.showMessage('Queue has been cleared', 'info');
+                    this.renderQueue(null, 'clear');
+                }
+                
+                handleSetMaxSize() {
+                    const size = parseInt(this.maxSizeInput.value);
+                    if (isNaN(size) || size < 1) {
+                        this.showMessage('Please enter a valid size (minimum 1)', 'error');
+                        return;
+                    }
+                    
+                    this.queue.setMaxSize(size);
+                    this.addLogEntry(`Max size set to: ${size}`, 'info');
+                    this.showMessage(`Queue max size updated to: ${size}`, 'info');
+                    this.renderQueue(null, 'setMaxSize', size);
+                }
+                
+                updatePointerPositions() {
+                    const elements = this.queueContainer.querySelectorAll('.queue-element');
+                    
+                    if (elements.length > 0) {
+                        // Position front pointer above the first element
+                        const firstElement = elements[0];
+                        const firstRect = firstElement.getBoundingClientRect();
+                        const containerRect = this.queueContainer.getBoundingClientRect();
+                        
+                        const firstElementLeft = firstElement.offsetLeft + (firstElement.offsetWidth / 2);
+                        this.frontPointer.style.left = `${firstElementLeft}px`;
+                        
+                        // Position rear pointer above the last element
+                        const lastElement = elements[elements.length - 1];
+                        const lastElementLeft = lastElement.offsetLeft + (lastElement.offsetWidth / 2);
+                        this.rearPointer.style.left = `${lastElementLeft}px`;
+                    } else {
+                        // Reset positions if queue is empty
+                        this.frontPointer.style.left = '50%';
+                        this.rearPointer.style.left = '50%';
+                    }
+                }
+                
+                renderQueue(isEnqueue = null, operation = null, value = null) {
+                    // Clear existing elements
+                    while (this.queueContainer.querySelector('.queue-element')) {
+                        this.queueContainer.removeChild(this.queueContainer.querySelector('.queue-element'));
+                    }
+                    
+                    const items = this.queue.getItems();
+                    
+                    // Create new elements
+                    items.forEach((item, index) => {
+                        const element = document.createElement('div');
+                        element.className = 'queue-element';
+                        element.textContent = item;
+                        
+                        // Add code snippet container
+                        const codeSnippet = document.createElement('div');
+                        codeSnippet.className = 'code-snippet';
+                        element.appendChild(codeSnippet);
+                        
+                        // Add animation class if enabled
+                        if (this.animationEnabled && isEnqueue === true && index === items.length - 1) {
+                            element.classList.add('entering');
+                            
+                            // Show code snippet for enqueue
+                            if (operation === 'enqueue') {
+                                codeSnippet.textContent = this.getCodeSnippet('enqueue', value);
+                                codeSnippet.classList.add('show');
+                                
+                                setTimeout(() => {
+                                    codeSnippet.classList.remove('show');
+                                }, 3000 / this.animationSpeed);
+                            }
+                        }
+                        
+                        this.queueContainer.insertBefore(element, this.queueContainer.querySelector('.queue-rear'));
+                    });
+                    
+                    // Handle dequeue animation
+                    if (this.animationEnabled && isEnqueue === false && value !== null) {
+                        const dequeuedElement = document.createElement('div');
+                        dequeuedElement.className = 'queue-element leaving';
+                        dequeuedElement.textContent = value;
+                        
+                        // Add code snippet for dequeue
+                        const codeSnippet = document.createElement('div');
+                        codeSnippet.className = 'code-snippet show';
+                        codeSnippet.textContent = this.getCodeSnippet('dequeue');
+                        dequeuedElement.appendChild(codeSnippet);
+                        
+                        this.queueContainer.insertBefore(dequeuedElement, this.queueContainer.firstChild);
+                        
+                        // Remove the element after animation completes
+                        setTimeout(() => {
+                            if (dequeuedElement.parentNode === this.queueContainer) {
+                                this.queueContainer.removeChild(dequeuedElement);
+                                // Update pointer positions after element is removed
+                                this.updatePointerPositions();
+                            }
+                        }, 1000 / this.animationSpeed);
+                    }
+                    
+                    // Handle clear operation
+                    if (operation === 'clear') {
+                        // Show clear code snippet in the middle of the container
+                        const clearCodeElement = document.createElement('div');
+                        clearCodeElement.className = 'code-snippet show';
+                        clearCodeElement.style.position = 'absolute';
+                        clearCodeElement.style.top = '50%';
+                        clearCodeElement.style.left = '50%';
+                        clearCodeElement.style.transform = 'translate(-50%, -50%)';
+                        clearCodeElement.style.width = 'auto';
+                        clearCodeElement.style.padding = '10px';
+                        clearCodeElement.style.fontSize = '0.9rem';
+                        clearCodeElement.textContent = this.getCodeSnippet('clear');
+                        this.queueContainer.appendChild(clearCodeElement);
+                        
+                        setTimeout(() => {
+                            if (clearCodeElement.parentNode === this.queueContainer) {
+                                this.queueContainer.removeChild(clearCodeElement);
+                            }
+                        }, 3000 / this.animationSpeed);
+                    }
+                    
+                    // Handle setMaxSize operation
+                    if (operation === 'setMaxSize') {
+                        // Show setMaxSize code snippet in the middle of the container
+                        const setMaxSizeCodeElement = document.createElement('div');
+                        setMaxSizeCodeElement.className = 'code-snippet show';
+                        setMaxSizeCodeElement.style.position = 'absolute';
+                        setMaxSizeCodeElement.style.top = '50%';
+                        setMaxSizeCodeElement.style.left = '50%';
+                        setMaxSizeCodeElement.style.transform = 'translate(-50%, -50%)';
+                        setMaxSizeCodeElement.style.width = 'auto';
+                        setMaxSizeCodeElement.style.padding = '10px';
+                        setMaxSizeCodeElement.style.fontSize = '0.9rem';
+                        setMaxSizeCodeElement.textContent = this.getCodeSnippet('setMaxSize', value);
+                        this.queueContainer.appendChild(setMaxSizeCodeElement);
+                        
+                        setTimeout(() => {
+                            if (setMaxSizeCodeElement.parentNode === this.queueContainer) {
+                                this.queueContainer.removeChild(setMaxSizeCodeElement);
+                            }
+                        }, 3000 / this.animationSpeed);
+                    }
+                    
+                    // Update pointer positions
+                    setTimeout(() => {
+                        this.updatePointerPositions();
+                    }, 100);
+                    
+                    this.updateUI();
+                }
+                
+                updateUI() {
+                    // Update info elements
+                    this.queueSizeEl.textContent = this.queue.size();
+                    this.queueFrontEl.textContent = this.queue.isEmpty() ? '-' : this.queue.peek();
+                    this.queueRearEl.textContent = this.queue.isEmpty() ? '-' : this.queue.getItems()[this.queue.size() - 1];
+                    this.queueIsEmptyEl.textContent = this.queue.isEmpty() ? 'Yes' : 'No';
+                    this.queueIsFullEl.textContent = this.queue.isFull() ? 'Yes' : 'No';
+                    
+                    // Update button states
+                    this.enqueueBtn.disabled = this.queue.isFull();
+                    this.dequeueBtn.disabled = this.queue.isEmpty();
+                    this.peekBtn.disabled = this.queue.isEmpty();
+                    this.clearBtn.disabled = this.queue.isEmpty();
+                }
+                
+                showMessage(text, type) {
+                    this.messageEl.textContent = text;
+                    this.messageEl.className = `message show ${type}`;
+                    
+                    setTimeout(() => {
+                        this.messageEl.classList.remove('show');
+                    }, 3000);
+                }
+                
+                addLogEntry(text, type) {
+                    const entry = document.createElement('div');
+                    entry.className = `log-entry ${type}`;
+                    entry.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+                    this.operationsLog.appendChild(entry);
+                    this.operationsLog.scrollTop = this.operationsLog.scrollHeight;
+                }
+            }
+            
+            // Initialize the application
+            const queueUI = new QueueUI();
+            
+            // Set initial animation speed
+            document.documentElement.style.setProperty('--animation-duration', '1s');
+            
+            // Add some demo data
+            setTimeout(() => {
+                queueUI.enqueueInput.value = "A";
+                queueUI.handleEnqueue();
+                setTimeout(() => {
+                    queueUI.enqueueInput.value = "B";
+                    queueUI.handleEnqueue();
+                    setTimeout(() => {
+                        queueUI.enqueueInput.value = "C";
+                        queueUI.handleEnqueue();
+                    }, 800);
+                }, 800);
+            }, 500);
+        });
+    </script>
+</body>
+</html>
